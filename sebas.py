@@ -1,11 +1,9 @@
-from queue import Empty
 from tkinter.filedialog import askdirectory
-from pytube import YouTube
-from pytube import Playlist
 import tkinter as tk
 import os
 import animeworld as aw
-
+import threading
+import eel
 
 """
 @Name: createDirectory
@@ -52,15 +50,23 @@ def createDirectory(path, name):
 def scaricaMedia():
     directory = path_field.get()
     url = url_field.get()
-    
-    if url == "":
-        tk.messagebox.showerror(title="Link", message="Nessun link inserito. ")
+    episodio = def_episodes.get()
 
-    else:
-        #tk.messagebox.showinfo(title="Download in corso", message="Download in corso, attendere")
-        scaricaEpisodi(url, directory)
+    args_download = {
+        directory: directory, 
+        url: url, 
+        episodio: episodio
+         }
 
-
+    url = url.split(",")
+    if len(url) > 1:
+        for season in url:   
+           args_download["url"] = season
+           thread = threading.Thread(target=scaricaEpisodi,args=args_download)
+           thread.start()
+           lbl_status.config(text = "Scaricamente in corso ... 5%")
+           thread.join()
+           lbl_status.config(text = "Scaricamento completato")
 """
 @Name: scaricaEpisodi
 @desc: si occupa di scaricare l'espidoio dal link passato e lo mette nella posizione di directory
@@ -70,16 +76,25 @@ def scaricaMedia():
 
 @return {int}
 """
-def scaricaEpisodi(url, directory):
+def scaricaEpisodi():
+    directory = path_field.get()
+    url = url_field.get()
     episodio = def_episodes.get()
+
     anime = aw.Anime(link=url)
     episodi = anime.getEpisodes()
+
+    #Controlla se l'utente ha scelto di creare la cartella 
+    if create_directory.get() == 1:
+        createDirectory(directory, anime.getName())
+        directory = directory + "/" + anime.getName()
+
+    #Controlla se c'è solo 1 episodio da scaricare 
     if episodio != '':
         episodioToDownload = episodi[int(episodio)]
         episodioToDownload.download(anime.getName() + "_Ep." + episodio, directory)
     else:
         try:
-        
             try:
                 episodi = anime.getEpisodes()
             except (aw.ServerNotSupported, aw.AnimeNotAvailable) as error:
@@ -147,9 +162,19 @@ def_episodes = tk.Entry(finestra,width=5,)
 def_episodes.pack()
 def_episodes.place(x=375, y=235)
 
+create_directory = tk.IntVar()
+
+crea_cartella = tk.Checkbutton(finestra, text="Crea cartella con nome dell'anime?",variable=create_directory, onvalue=1, offvalue=0)
+crea_cartella.pack()
+crea_cartella.place(x=375, y=225)
+
+lbl_status = tk.Label(text="", width=50, height=3)
+lbl_status.pack()
+lbl_status.place(x=450, y=225)
+
 #opzioni supplementari
 finestra.resizable(False, False)
-finestra.geometry("500x300")
+finestra.geometry("700x600")
 
 
 finestra.mainloop()
