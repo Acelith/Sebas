@@ -3,7 +3,6 @@ import tkinter as tk
 import os
 import animeworld as aw
 import threading
-import eel
 
 """
 @Name: createDirectory
@@ -19,7 +18,11 @@ import eel
 
 def createDirectory(path, name):
     try:
-        finalDirectory = 0
+        caratteri = {"<", ">", ":", '"', "/", "|", "?", "*", " "}
+        # Rimpiazzo i caratteri vietati da windows
+        for carattere in caratteri:
+           name = name.replace(carattere, "_")
+
         #Check esistenza cartella
         if os.path.exists(path + "/" + name):
             i = 0
@@ -30,14 +33,13 @@ def createDirectory(path, name):
                 else:
                     #Crea la cartella nella posizione data e con un nome non usato
                     os.makedirs(path + "/" + name + " - " + str(digit))
-                    finalDirectory  = path + "/" + name + " - " + str(digit)
                     break
 
         else:
             os.makedirs(path + "/" + name)
-            finalDirectory  = path + "/" + name
-
-        return finalDirectory
+            
+        new_name = name
+        return new_name
     except Exception:
         tk.messagebox.showerror(title="Errore cartella", message="Impossibile creare la cartella di destinazione.")
 
@@ -48,25 +50,10 @@ def createDirectory(path, name):
 """
 
 def scaricaMedia():
-    directory = path_field.get()
-    url = url_field.get()
-    episodio = def_episodes.get()
 
-    args_download = {
-        directory: directory, 
-        url: url, 
-        episodio: episodio
-         }
+    thread = threading.Thread(target=scaricaEpisodi)
+    thread.start()
 
-    url = url.split(",")
-    if len(url) > 1:
-        for season in url:   
-           args_download["url"] = season
-           thread = threading.Thread(target=scaricaEpisodi,args=args_download)
-           thread.start()
-           lbl_status.config(text = "Scaricamente in corso ... 5%")
-           thread.join()
-           lbl_status.config(text = "Scaricamento completato")
 """
 @Name: scaricaEpisodi
 @desc: si occupa di scaricare l'espidoio dal link passato e lo mette nella posizione di directory
@@ -86,8 +73,8 @@ def scaricaEpisodi():
 
     #Controlla se l'utente ha scelto di creare la cartella 
     if create_directory.get() == 1:
-        createDirectory(directory, anime.getName())
-        directory = directory + "/" + anime.getName()
+        new_name = createDirectory(directory, anime.getName())
+        directory = directory + "/" + new_name
 
     #Controlla se c'è solo 1 episodio da scaricare 
     if episodio != '':
@@ -125,56 +112,80 @@ def askDirectory():
 
 
 #-------------------------------------------Gui---------------------------------------------------------#
-# gui
+
+ # gui
 finestra = tk.Tk()
+finestra.title("Sebas - Anime Downloader")
 
-#titolo
-finestra.title("Sebas - Anime Downloader")  
-#widget
+#setting window size
+width=600
+height=500
+screenwidth = finestra.winfo_screenwidth()
+screenheight = finestra.winfo_screenheight()
+alignstr = '%dx%d+%d+%d' % (width, height, (screenwidth - width) / 2, (screenheight - height) / 2)
+finestra.geometry(alignstr)
+finestra.resizable(width=False, height=False)
 
-lbl_download_video = tk.Label(text="Inserisci url dell'anime da AnimeWorld", width=50, height=3)
-lbl_download_video.pack()
+lbl_download_video=tk.Label(finestra)
+lbl_download_video["fg"] = "#333333"
+lbl_download_video["justify"] = "center"
+lbl_download_video["text"] = "Inserisci URL dell'anime da Animeworld"
+lbl_download_video.place(x=10,y=10,width=231,height=36)
 
+url_field=tk.Entry(finestra)
+url_field["borderwidth"] = "1px"
+url_field["fg"] = "#333333"
+url_field["justify"] = "center"
+url_field["text"] = "URL"
+url_field.place(x=240,y=10,width=351,height=30)
 
-url_field = tk.Entry(finestra,width=50)
-url_field.pack()
+lbl_path_video=tk.Label(finestra)
+lbl_path_video["fg"] = "#333333"
+lbl_path_video["justify"] = "center"
+lbl_path_video["text"] = "Percorso di installazione"
+lbl_path_video.place(x=0,y=60,width=172,height=30)
 
-lbl_path_video = tk.Label(text="path dove scaricare gli episodi", width=50, height=3)
-lbl_path_video.pack()
+path_field=tk.Entry(finestra)
+path_field["borderwidth"] = "1px"
+path_field["fg"] = "#333333"
+path_field["justify"] = "center"
+path_field["text"] = "Path"
+path_field.place(x=240,y=60,width=352,height=30)
 
-
-path_field = tk.Entry(finestra,width=50)
-path_field.pack()
-
-path_button = tk.Button(text="...",  width=4,height=3,command=askDirectory)
-path_button.pack()
-path_button.place(x=445, y=117)
-
-
-
-download_btn = tk.Button(text="Download UwU ",  width=10,height=3,command=scaricaMedia)
-download_btn.pack()
-
-lbl_def_espidodes = tk.Label(text="Scarica solo 1 episodio specifico", width=50, height=5)
-lbl_def_espidodes.pack()
-
-def_episodes = tk.Entry(finestra,width=5,)
-def_episodes.pack()
-def_episodes.place(x=375, y=235)
+GButton_956=tk.Button(finestra, command=askDirectory)
+GButton_956["bg"] = "#efefef"
+GButton_956["fg"] = "#000000"
+GButton_956["justify"] = "center"
+GButton_956["text"] = "..."
+GButton_956.place(x=170,y=60,width=63,height=30)
 
 create_directory = tk.IntVar()
+crea_cartella=tk.Checkbutton(finestra, variable=create_directory, onvalue=1, offvalue=0)
+crea_cartella["fg"] = "#333333"
+crea_cartella["justify"] = "center"
+crea_cartella["text"] = "Crea Sottocartella"
+crea_cartella.place(x=410,y=350,width=154,height=30)
+crea_cartella["offvalue"] = "0"
+crea_cartella["onvalue"] = "1"
 
-crea_cartella = tk.Checkbutton(finestra, text="Crea cartella con nome dell'anime?",variable=create_directory, onvalue=1, offvalue=0)
-crea_cartella.pack()
-crea_cartella.place(x=375, y=225)
+download_btn=tk.Button(finestra, command=scaricaMedia)
+download_btn["bg"] = "#efefef"
+download_btn["fg"] = "#000000"
+download_btn["justify"] = "center"
+download_btn["text"] = "Scarica"
+download_btn.place(x=430,y=400,width=160,height=86)
 
-lbl_status = tk.Label(text="", width=50, height=3)
-lbl_status.pack()
-lbl_status.place(x=450, y=225)
+lbl_def_espidodes=tk.Label(finestra)
+lbl_def_espidodes["fg"] = "#333333"
+lbl_def_espidodes["justify"] = "center"
+lbl_def_espidodes["text"] = "Scarica solo 1 episodio"
+lbl_def_espidodes.place(x=0,y=450,width=172,height=31)
 
-#opzioni supplementari
-finestra.resizable(False, False)
-finestra.geometry("700x600")
-
+def_episodes=tk.Entry(finestra)
+def_episodes["borderwidth"] = "1px"
+def_episodes["fg"] = "#333333"
+def_episodes["justify"] = "center"
+def_episodes["text"] = "Episodio"
+def_episodes.place(x=180,y=450,width=162,height=36)
 
 finestra.mainloop()
