@@ -1,9 +1,11 @@
+from queue import Empty
 from tkinter.filedialog import askdirectory
 from pytube import YouTube
 from pytube import Playlist
 import tkinter as tk
 import os
 import animeworld as aw
+
 
 """
 @Name: createDirectory
@@ -55,13 +57,13 @@ def scaricaMedia():
         tk.messagebox.showerror(title="Link", message="Nessun link inserito. ")
 
     else:
-        tk.messagebox.showinfo(title="Download in corso", message="Download in corso, attendere")
+        #tk.messagebox.showinfo(title="Download in corso", message="Download in corso, attendere")
         scaricaEpisodi(url, directory)
 
 
 """
-@Name: scaricaVideo
-@desc: si occupa di scaricare il video dal link passato e lo mette nella posizione di directory
+@Name: scaricaEpisodi
+@desc: si occupa di scaricare l'espidoio dal link passato e lo mette nella posizione di directory
 @parameters: 
     url{String}: URL del video da scaricare
     directory {String}: percorso dove inserire il video
@@ -69,18 +71,24 @@ def scaricaMedia():
 @return {int}
 """
 def scaricaEpisodi(url, directory):
-    try:
-        anime = aw.Anime(link=url)
-    
+    episodio = def_episodes.get()
+    anime = aw.Anime(link=url)
+    episodi = anime.getEpisodes()
+    if episodio != '':
+        episodioToDownload = episodi[int(episodio)]
+        episodioToDownload.download(anime.getName() + "_Ep." + episodio, directory)
+    else:
         try:
-            episodi = anime.getEpisodes()
-        except (aw.ServerNotSupported, aw.AnimeNotAvailable) as error:
-            print("Errore:", error)
-        else:
-            for x in episodi:
-                x.download(anime.getName() + "_Ep." + x.number, directory)
-    except (aw.DeprecatedLibrary, aw.Error404) as error:
-      print(error)
+        
+            try:
+                episodi = anime.getEpisodes()
+            except (aw.ServerNotSupported, aw.AnimeNotAvailable) as error:
+                print("Errore:", error)
+            else:
+                for x in episodi:
+                    x.download(anime.getName() + "_Ep." + x.number, directory)
+        except (aw.DeprecatedLibrary, aw.Error404) as error:
+            print(error)
 
 
 
@@ -101,7 +109,7 @@ def askDirectory():
     path_field.insert(0, directory) 
 
 
-#-------------------------------------------Guy---------------------------------------------------------#
+#-------------------------------------------Gui---------------------------------------------------------#
 # gui
 finestra = tk.Tk()
 
@@ -119,17 +127,25 @@ url_field.pack()
 lbl_path_video = tk.Label(text="path dove scaricare gli episodi", width=50, height=3)
 lbl_path_video.pack()
 
+
 path_field = tk.Entry(finestra,width=50)
 path_field.pack()
 
-path_button = tk.Button(text="...",  width=4,height=1,command=askDirectory)
+path_button = tk.Button(text="...",  width=4,height=3,command=askDirectory)
 path_button.pack()
 path_button.place(x=445, y=117)
 
-download_btn = tk.Button(text="Download UwU ",  width=10,height=4,command=scaricaMedia)
+
+
+download_btn = tk.Button(text="Download UwU ",  width=10,height=3,command=scaricaMedia)
 download_btn.pack()
 
+lbl_def_espidodes = tk.Label(text="Scarica solo 1 episodio specifico", width=50, height=5)
+lbl_def_espidodes.pack()
 
+def_episodes = tk.Entry(finestra,width=5,)
+def_episodes.pack()
+def_episodes.place(x=375, y=235)
 
 #opzioni supplementari
 finestra.resizable(False, False)
