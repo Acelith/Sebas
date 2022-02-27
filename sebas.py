@@ -4,6 +4,7 @@ import os
 import animeworld as aw
 import threading
 
+
 """
 @Name: createDirectory
 @desc: si occupa di creare una directory nella posizione deisderata con il nome desiderata,
@@ -51,9 +52,16 @@ def createDirectory(path, name):
 
 def scaricaMedia():
 
-    thread = threading.Thread(target=scaricaEpisodi)
-    thread.start()
+    try:
+        thread = threading.Thread(target=scaricaEpisodi)
+        thread.start()
 
+        print("startato")
+       
+    except Exception:
+        tk.messagebox.showerror(title="Errore download", message="Non è stato possibile scaricare l'anime richiesto, mi dispiace")
+
+    tk.messagebox.showinfo(title="Download inziato", message="Download di iniziato")
 """
 @Name: scaricaEpisodi
 @desc: si occupa di scaricare l'espidoio dal link passato e lo mette nella posizione di directory
@@ -73,13 +81,25 @@ def scaricaEpisodi():
 
     #Controlla se l'utente ha scelto di creare la cartella 
     if create_directory.get() == 1:
+        
         new_name = createDirectory(directory, anime.getName())
         directory = directory + "/" + new_name
 
     #Controlla se c'è solo 1 episodio da scaricare 
     if episodio != '':
-        episodioToDownload = episodi[int(episodio)]
-        episodioToDownload.download(anime.getName() + "_Ep." + episodio, directory)
+    
+        if episodio.find("+")!=-1:
+            episodio = episodio.replace("+", '')
+            episodiToDownload = int(episodio)
+
+            for x in episodi:
+                ep = int(x.number)
+                if ep >= episodiToDownload:
+                    x.download(anime.getName() + "_Ep." + x.number, directory)
+        
+        else:
+              episodioToDownload = episodi[int(episodio)]
+              episodioToDownload.download(anime.getName() + "_Ep." + episodio, directory)
     else:
         try:
             try:
