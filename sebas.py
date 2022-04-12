@@ -95,11 +95,12 @@ def scaricaEpisodi():
             for x in episodi:
                 ep = int(x.number)
                 if ep >= episodiToDownload:
-                    x.download(anime.getName() + "_Ep." + x.number, directory)
+                    x.download(anime.getName() + "_Ep_" + x.number, directory)
+                    print("Scaricato episodio N." + x.number + " di " + anime.getName()) 
         
         else:
               episodioToDownload = episodi[int(episodio)]
-              episodioToDownload.download(anime.getName() + "_Ep." + episodio, directory)
+              episodioToDownload.download(anime.getName() + "_Ep_" + episodio, directory)
     else:
         try:
             try:
@@ -108,7 +109,8 @@ def scaricaEpisodi():
                 print("Errore:", error)
             else:
                 for x in episodi:
-                    x.download(anime.getName() + "_Ep." + x.number, directory)
+                    x.download(anime.getName() + "_Ep_" + x.number, directory)
+                    print("Scaricato episodio N." + x.number + " di " + anime.getName()) 
         except (aw.DeprecatedLibrary, aw.Error404) as error:
             print(error)
 
@@ -128,6 +130,7 @@ def askDirectory():
         
     if directory == '':
         directory = os.getcwd()
+    path_field.delete(0, "end")
     path_field.insert(0, directory) 
 
 
